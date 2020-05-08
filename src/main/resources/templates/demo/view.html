@@ -1,0 +1,13 @@
+<!-- 这个模板中的html不是普通的html文件，它不是静态的，需要有申明表示它是template模板 -->
+<!DOCTYPE html>
+                <!-- 声明：当前的网页是模板，网页模板来源于thymeleaf官网 -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher</title>
+</head>
+<body>
+    <p th:text="${name}"></p>
+    <p th:text="${age}"></p>
+</body>
+</html>
