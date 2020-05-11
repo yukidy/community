@@ -1,4 +1,4 @@
-package com.mycode.community;
+package com.mycode.community.config;
 
 
 import com.google.code.kaptcha.Producer;
