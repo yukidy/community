@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat;
 public class AlphaConfig {
 
     /**
-     * 将java只带的SimpleDateFormat方法装配到bean中
+     * 将java自带的SimpleDateFormat方法装配到bean中
      * 因为项目中基本上的时间格式都一样此时我们将这个SimpleDateFormat实例化一次装配到bean中
      * 后可反复使用
      */

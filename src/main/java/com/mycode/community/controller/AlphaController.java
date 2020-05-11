@@ -1,14 +1,17 @@
 package com.mycode.community.controller;
 
 import com.mycode.community.service.AlphaService;
+import com.mycode.community.util.CommunityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
@@ -222,6 +225,66 @@ public class AlphaController {
         list.add(map);
 
         return list;
+    }
+
+
+    /**
+     * 演示cookie相关的实例
+     */
+
+    // 接收浏览器请求，生成cookie
+    @RequestMapping(path = "/cookie/set", method = RequestMethod.GET)
+    @ResponseBody
+    public String setCookie (HttpServletResponse response) {
+        // 创建cookie
+        Cookie cookie = new Cookie("code", CommunityUtil.generateUUID());
+        // 设置生效的范围（访问哪些路径响应头才发cookie，若是不限制，可能所有的路径都会发，浪费资源和流量）
+        cookie.setPath("/community/alpha");
+        // 浏览器得到cookie后默认存到其内存当中，当把浏览器关掉再开后，cookie会消失，若是希望还在，需要做相应设置
+        // 设置cookie的生存时间，这时浏览器会把cookie存到硬盘中，长期保留知道生存时间用尽
+        cookie.setMaxAge(60 * 10);  // 单位是秒-10分钟
+        // 发送cookie
+        response.addCookie(cookie);
+        return "set cookie";
+
+    }
+
+    //浏览器在生效的范围响应请求，自动发送cookie至服务器
+    @RequestMapping(path = "/cookie/get", method = RequestMethod.GET)
+    @ResponseBody
+    public String getCookie (@CookieValue("code") String code) {
+        //效果见网页network
+
+        //如何用cookie
+        System.out.println(code);
+        return "get cookie";
+    }
+
+
+    /**
+     * 演示session相关的实例
+     */
+
+    @RequestMapping(path = "/session/set", method = RequestMethod.GET)
+    @ResponseBody
+    public String serSession(HttpSession session) {
+        // session由于是保存在服务端的，其可以保存任何类型的数据，
+        // 而cookie只能存字符串且小型的数据（1、因为来回传，数据量大太影响性能; 2、客户端识别类型有限，其他java类型识别不了）
+        // 在服务器端，spring mvc会自动的创建session，注入进来
+        // session和model,request,response这些对象用法一样，只需要声明，spring mvc就会自动帮我们注入依赖
+
+        session.setAttribute("id", 1);
+        session.setAttribute("name", "test");
+        return "set session";
+
+    }
+
+    @RequestMapping(path = "/session/get", method = RequestMethod.GET)
+    @ResponseBody
+    public String getSession (HttpSession session) {
+        System.out.println(session.getAttribute("id"));
+        System.out.println(session.getAttribute("name"));
+        return "get session";
     }
 
 }

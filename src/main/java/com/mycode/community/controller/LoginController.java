@@ -1,15 +1,23 @@
 package com.mycode.community.controller;
 
+import com.google.code.kaptcha.Producer;
 import com.mycode.community.entity.User;
 import com.mycode.community.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Map;
 
 import static com.mycode.community.util.CommunityConstant.ACTIVATION_REPEAT;
@@ -18,8 +26,13 @@ import static com.mycode.community.util.CommunityConstant.ACTIVATION_SUCCESS;
 @Controller
 public class LoginController {
 
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private Producer kaptchaProduce;
 
     /**
      *  注册页面
@@ -31,6 +44,7 @@ public class LoginController {
 
     /**
      *  登录页面
+     *      打开登录页面，目的是给浏览器返回一个html
      */
     @RequestMapping(path = "/login", method = RequestMethod.GET)
     public String getLoginPage () {
@@ -86,4 +100,32 @@ public class LoginController {
         return "/site/operate-result";
 
     }
+
+    /**
+     * 生成验证码：
+     *      通过登录页面路径后添加图片路径，返回给该方法，通过图片路径再返回图片给登录页面
+     *
+     *  返回的是一种特殊的类型：一张图片，返回值用void，因为需要我们通过response对象手动的向浏览器输出
+     */
+    @RequestMapping(path = "/kaptcha", method = RequestMethod.GET)
+    public void getKaptcha (HttpServletResponse response, HttpSession session) {
+
+        // 生成验证码
+        String text = kaptchaProduce.createText();
+        BufferedImage image = kaptchaProduce.createImage(text);
+
+        // 存入session
+        session.setAttribute("kaptcha", text);
+
+        // 将验证码图片输出给浏览器
+        response.setContentType("image/png");
+        try {
+            OutputStream os = response.getOutputStream();
+            ImageIO.write(image, "png", os);
+        } catch (IOException e) {
+            logger.error("加载验证码失败:" + e.getMessage());
+        }
+
+    }
+
 }
