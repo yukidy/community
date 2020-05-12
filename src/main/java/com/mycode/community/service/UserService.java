@@ -195,4 +195,11 @@ public class UserService {
         tickerMapper.updateStatus(ticket, 1);
     }
 
+    /**
+     * 查询凭证
+     */
+    public LoginTicket getLoginTicket (String ticket) {
+        return tickerMapper.selectByTicket(ticket);
+    }
+
 }
