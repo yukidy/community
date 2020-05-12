@@ -1,6 +1,8 @@
 package com.mycode.community.service;
 
+import com.mycode.community.dao.LoginTickerMapper;
 import com.mycode.community.dao.UserMapper;
+import com.mycode.community.entity.LoginTicket;
 import com.mycode.community.entity.User;
 import com.mycode.community.util.CommunityUtil;
 import com.mycode.community.util.MailClient;
@@ -25,6 +27,9 @@ public class UserService {
     private UserMapper userMapper;
 
     @Autowired
+    private LoginTickerMapper tickerMapper;
+
+    @Autowired
     private MailClient mailClient;
 
     @Autowired
@@ -41,6 +46,11 @@ public class UserService {
         return userMapper.selectById(id);
     }
 
+    /**
+     * 用户注册
+     * @param user
+     * @return
+     */
     // 返回的一般是：密码不为空、账号不为空等等，可以用一个map将这些信息装起来
     public Map<String, Object> register (User user) {
         Map<String, Object> map = new HashMap<>();
@@ -123,4 +133,66 @@ public class UserService {
         }
 
     }
+
+
+    /**
+     * 用户登录
+     */
+    public Map<String, Object> login (String username, String password, int expiredSeconds) {   //用户名、密码、凭证过期时间
+
+        Map<String, Object> map = new HashMap<>();
+
+        //空值处理
+        if (StringUtils.isBlank(username)) {
+            map.put("usernameMsg", "用户名不能为空!");
+            return map;
+        }
+        if (StringUtils.isBlank(password)) {
+            map.put("passwordMsg", "密码不能为空!");
+            return map;
+        }
+
+        //验证账号
+        User user = userMapper.selectByName(username);
+        if (user == null) {
+            map.put("usernameMsg", "该账号不存在!");
+            return map;
+        }
+
+        //验证激活状态
+        if (user.getStatus() == 0) {
+            map.put("usernameMsg", "该账号未激活!");
+            return map;
+        }
+
+        //验证密码
+        //密码是通过MD5加密的，但是加密后的值是不会变化的，所以只要通过密码和随机密码再加密即可进行对比
+        password = CommunityUtil.md5(password + user.getSalt());
+        if (!user.getPassword().equals(password)) {
+            map.put("passwordMsg", "密码不正确!");
+            return map;
+        }
+
+        //生成登录凭证
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setTicket(CommunityUtil.generateUUID());
+        loginTicket.setStatus(0);
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
+        tickerMapper.insertLoginTicket(loginTicket);
+
+        //将登录凭证ticket存入map中
+        map.put("ticket", loginTicket.getTicket());
+        return map;
+
+    }
+
+    /**
+     * 退出登录
+     *  对登录凭证修改
+     */
+    public void logout (String ticket) {
+        tickerMapper.updateStatus(ticket, 1);
+    }
+
 }

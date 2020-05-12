@@ -1,9 +1,12 @@
 package com.mycode.community;
 
 import com.mycode.community.dao.DiscussPostMapper;
+import com.mycode.community.dao.LoginTickerMapper;
 import com.mycode.community.dao.UserMapper;
 import com.mycode.community.entity.DiscussPost;
+import com.mycode.community.entity.LoginTicket;
 import com.mycode.community.entity.User;
+import com.mycode.community.util.CommunityUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,6 +24,9 @@ public class MapperTests {
 
     @Autowired
     private DiscussPostMapper discussPostMapper;
+
+    @Autowired
+    private LoginTickerMapper loginTickerMapper;
 
     @Test
     public void testSelect () {
@@ -72,6 +78,33 @@ public class MapperTests {
 
         int rows = discussPostMapper.selectDiscussPostRows(149);
         System.out.println(rows);
+    }
+
+    @Test
+    public void testInsertLoginTicket () {
+
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(153);
+        loginTicket.setTicket(CommunityUtil.generateUUID());
+        loginTicket.setStatus(0);
+        // new Date()，获取当前系统时间
+        // new Date(System.currentTimeMillis() + 1000 * 60 * 10)，获取当前时间的时间戳，比当前时间多10分钟
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + 1000 * 60 * 10));
+
+        loginTickerMapper.insertLoginTicket(loginTicket);
+
+    }
+
+    @Test
+    public void testSelectLoginTicket () {
+
+        LoginTicket loginTicket = loginTickerMapper.selectByTicket("b2b3d4954de94c9fb6fa1c83344fe9ba");
+        System.out.println(loginTicket);
+
+        loginTickerMapper.updateStatus("b2b3d4954de94c9fb6fa1c83344fe9ba", 1);
+        loginTicket = loginTickerMapper.selectByTicket("b2b3d4954de94c9fb6fa1c83344fe9ba");
+        System.out.println(loginTicket);
+
     }
 
 }

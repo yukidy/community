@@ -3,16 +3,20 @@ package com.mycode.community.controller;
 import com.google.code.kaptcha.Producer;
 import com.mycode.community.entity.User;
 import com.mycode.community.service.UserService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
@@ -20,8 +24,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
-import static com.mycode.community.util.CommunityConstant.ACTIVATION_REPEAT;
-import static com.mycode.community.util.CommunityConstant.ACTIVATION_SUCCESS;
+import static com.mycode.community.util.CommunityConstant.*;
 
 @Controller
 public class LoginController {
@@ -33,6 +36,9 @@ public class LoginController {
 
     @Autowired
     private Producer kaptchaProduce;
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
 
     /**
      *  注册页面
@@ -127,5 +133,58 @@ public class LoginController {
         }
 
     }
+
+
+    /**
+     * 登录操作
+     *      这里发现，请求路径/login与进入登录页面时的请求路径一样，可以这样吗？
+     *          可以，只要请求方法不同，如进入页面是GET方法，而登录操作时POST方法，即可
+     */
+    @RequestMapping(path = "/login", method = RequestMethod.POST)
+    public String login (String username, String password, String code, boolean isrememberme,
+                         Model model, HttpServletResponse response, HttpSession session) {
+                        //当参数不是普通的参数，如实体User，那么spring mvc会自动将实体装入model里
+                        //在页面中即可直接直接通过model获取这些参数
+                        //  但如果参数是普通类型参数，字符串，基本类型这些，则spring mvc默认是不会加入model中的
+                        //  此时有两种方法：1、将这些参数手动装入model中
+                        //                 2、这些参数是存在于request对象当中的，当程序执行到html页面时，请求是还没有被销毁的
+                        //                      所以页面可以通过request对象来取值，如${param.username}
+        // 检查验证码
+        String kaptcha = (String) session.getAttribute("kaptcha");
+        if (StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)) {
+            model.addAttribute("codeMsg", "验证码不正确!");
+            return "/site/login";
+        }
+
+        // 检查账号，密码
+        int expiredSeconds = isrememberme ? DEFAULT_EXPIRED_SECONDS : REMEMBER_EXPIRED_SECONDS;
+        Map<String, Object> map = userService.login(username, password, expiredSeconds);
+        if (map.containsKey("ticket")) { //map中是否包含ticket
+            //验证成功
+            //将ticket传给cookie
+            Cookie cookie = new Cookie("ticket", map.get("ticket").toString());
+            //设置生效范围，不要写死，利用配置类
+            cookie.setPath(contextPath);
+            cookie.setMaxAge(expiredSeconds);
+            response.addCookie(cookie);
+            return "redirect:/index";  //重定向到首页
+        } else {
+            //验证失败
+            model.addAttribute("usernameMsg", map.get("usernameMsg"));
+            model.addAttribute("passwordMsg", map.get("passwordMsg"));
+            return "/site/login";
+        }
+
+    }
+
+    /**
+     * 退出登录
+     */
+    @RequestMapping(path = "/logout", method = RequestMethod.GET)
+    public String logout (@CookieValue("ticket") String ticket) {
+        userService.logout(ticket);
+        return "redirect:/login";
+    }
+
 
 }

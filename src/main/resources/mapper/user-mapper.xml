@@ -43,7 +43,7 @@
             useGeneratedKeys 参数只针对 insert 语句生效，默认为 false。
             当设置为 true 时，表示如果插入的表以自增列为主键，则允许 JDBC 支持自动生成主键，并可将自动生成的主键返回。
             具体用法：
-                 useGeneratedKeys=”true” keyProperty=”对应的主键的对象”。
+                 useGeneratedKeys=”true” keyProperty=”指定对应的主键的对象”。
              其中自增在配置文件中已经配置完成   -->
     <insert id="insertUser" parameterType="User" keyProperty="id">
         insert into user (<include refid="insertFields"></include>)
