@@ -30,11 +30,9 @@ public interface CommunityConstant {
 
     /**
      * 记住状态的登录凭证的超时时间
-     *  time: 90 days
+     *  time: 30 days
      */
-    int REMEMBER_EXPIRED_SECONDS = 3600 * 24 * 90;
-
-
+    int REMEMBER_EXPIRED_SECONDS = 3600 * 24 * 30;
 
 
 }

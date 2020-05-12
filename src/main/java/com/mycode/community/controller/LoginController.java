@@ -157,7 +157,7 @@ public class LoginController {
         }
 
         // 检查账号，密码
-        int expiredSeconds = isrememberme ? DEFAULT_EXPIRED_SECONDS : REMEMBER_EXPIRED_SECONDS;
+        int expiredSeconds = !isrememberme ? DEFAULT_EXPIRED_SECONDS : REMEMBER_EXPIRED_SECONDS;
         Map<String, Object> map = userService.login(username, password, expiredSeconds);
         if (map.containsKey("ticket")) { //map中是否包含ticket
             //验证成功

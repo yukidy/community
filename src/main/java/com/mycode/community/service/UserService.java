@@ -202,4 +202,17 @@ public class UserService {
         return tickerMapper.selectByTicket(ticket);
     }
 
+    /**
+     * 更新图片
+     */
+    public int updateHeaderUrl (int userId, String headerUrl) {
+        return userMapper.updateHeader(userId, headerUrl);
+    }
+
+    /**
+     * 修改密码
+     */
+    public int updatePassword (int userId, String password) {
+        return userMapper.updatePassword(userId, password);
+    }
 }
