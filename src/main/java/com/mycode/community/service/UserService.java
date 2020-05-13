@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 import static com.mycode.community.util.CommunityConstant.*;
 
@@ -178,7 +175,12 @@ public class UserService {
         loginTicket.setUserId(user.getId());
         loginTicket.setTicket(CommunityUtil.generateUUID());
         loginTicket.setStatus(0);
-        loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
+        //loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
+
+        Calendar now = Calendar.getInstance();
+        now.add(Calendar.SECOND, expiredSeconds);
+        loginTicket.setExpired(new Date(now.getTimeInMillis()));
+
         tickerMapper.insertLoginTicket(loginTicket);
 
         //将登录凭证ticket存入map中

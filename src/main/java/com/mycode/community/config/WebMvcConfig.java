@@ -1,6 +1,7 @@
 package com.mycode.community.config;
 
 import com.mycode.community.controller.interceptor.AlphaInterceptor;
+import com.mycode.community.controller.interceptor.LoginRequiredInterceptor;
 import com.mycode.community.controller.interceptor.LoginTicketInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Autowired
     private LoginTicketInterceptor ticketInterceptor;
+
+    @Autowired
+    private LoginRequiredInterceptor requiredInterceptor;
 
     // 注册拦截器:实现addInterceptors方法
     @Override
@@ -42,6 +46,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         // 登录成功后，所有的页面都需要拦截，显示用户信息
         registry.addInterceptor(ticketInterceptor)
+                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
+
+        // 要求：对所有静态资源都不处理，而动态资源都处理
+        // 动态资源在处理时，人为的筛选了带注解的那部分，其他的不管
+        // 处理加快效率
+        registry.addInterceptor(requiredInterceptor)
                 .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
     }
 
