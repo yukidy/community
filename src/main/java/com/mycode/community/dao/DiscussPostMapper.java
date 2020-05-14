@@ -21,4 +21,7 @@ public interface DiscussPostMapper {
     // 上面的方法也是做动态sql，但是它有三个参数，所以userId不需要起别名
     int selectDiscussPostRows (@Param("userId") int userId);
 
+    // 增加帖子
+    int insertDiscussPost (DiscussPost discussPost);
+
 }

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <p>
+        <input type="button" value="发送" onclick="send();">
+    </p>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+<script>
+    function send() {
+        <!--相比于$.ajax();万能的方法，这个方法可以配置任何参数以及请求方式 -->
+        <!--  发post请求----$.post(); 发get请求---$.get(); 是一种简化之后的方法 -->
+        $.post(
+            "/community/alpha/ajax",
+            {"name":"张三","age":20},
+            <!-- 声明回调函数,匿名的，当服务器响应浏览器之后，浏览器得到响应，会调用该方法，并将得到的数据data传给该方法 -->
+            function (data) {
+                <!-- 是一个字符串 -->
+                console.log(typeof (data));
+                console.log(data);
+
+                <!-- 把该字符串转换成js对象: object-->
+                data = $.parseJSON(data);
+                console.log(typeof (data));
+
+                console.log(data.code);
+                console.log(data.msg);
+            }
+        );
+    }
+</script>
+</html>

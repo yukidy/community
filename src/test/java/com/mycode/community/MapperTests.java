@@ -7,7 +7,6 @@ import com.mycode.community.entity.DiscussPost;
 import com.mycode.community.entity.LoginTicket;
 import com.mycode.community.entity.User;
 import com.mycode.community.util.CommunityUtil;
-import com.mycode.community.util.SensitiveFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -105,6 +104,22 @@ public class MapperTests {
         loginTickerMapper.updateStatus("b2b3d4954de94c9fb6fa1c83344fe9ba", 1);
         loginTicket = loginTickerMapper.selectByTicket("b2b3d4954de94c9fb6fa1c83344fe9ba");
         System.out.println(loginTicket);
+
+    }
+
+    @Test
+    public void testInsertDiscussPost () {
+
+        DiscussPost discussPost = new DiscussPost();
+        discussPost.setUserId(153);
+        discussPost.setTitle("community project");
+        discussPost.setContent("this is my first community project : 哈哈");
+        discussPost.setType(0);
+        discussPost.setStatus(0);
+        discussPost.setCreateTime(new Date());
+        discussPost.setCommentCount(0);
+        discussPost.setScore(0);
+        System.out.println(discussPostMapper.insertDiscussPost(discussPost));
 
     }
 

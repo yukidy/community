@@ -10,6 +10,10 @@
         id, user_id, title, content, type, status, create_time, comment_count, score
     </sql>
 
+    <sql id="insertFields">
+        user_id, title, content, type, status, create_time, comment_count, score
+    </sql>
+
     <!-- 该方法返回的是集合，集合里装DiscussPosts对象，由于List是java自带类型，所以可以检测到
             所以这里返回的类型应该是这个对象 -->
     <select id="selectDiscussPosts" resultType="DiscussPost">
@@ -31,5 +35,10 @@
             and user_id = #{userId}
         </if>
     </select>
+
+    <insert id="insertDiscussPost" parameterType="DiscussPost" keyProperty="id" >
+        insert into discuss_post(<include refid="insertFields"></include>)
+        values (#{userId}, #{title}, #{content}, #{type}, #{status}, #{createTime}, #{commentCount}, #{score});
+    </insert>
     
 </mapper>

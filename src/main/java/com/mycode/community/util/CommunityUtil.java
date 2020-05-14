@@ -1,8 +1,11 @@
 package com.mycode.community.util;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.DigestUtils;
 
+import java.util.Map;
 import java.util.UUID;
 
 public class CommunityUtil {
@@ -23,6 +26,36 @@ public class CommunityUtil {
         }
         //调用spring自带的工具DigestUtils，md5DigestAsHex把传入的参数（要求传入的是byte类型）加密成16进制的字符串
         return DigestUtils.md5DigestAsHex(key.getBytes());
+    }
+
+    /**
+     * 获取JSON字符串
+     * @param code 编码/编号
+     * @param msg 提示信息
+     * @param map 封装的业务数据
+     * @return json格式的字符串
+     */
+    public static String getJSONString (int code, String msg, Map<String, Object> map) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code", code);
+        jsonObject.put("msg", msg);
+
+        if (map != null) {
+            for (String key : map.keySet()) {
+                jsonObject.put(key, map.get(key));
+            }
+        }
+
+        return jsonObject.toJSONString();
+    }
+
+    //重载方法
+    public static String getJSONString (int code, String msg) {
+        return getJSONString(code, msg, null);
+    }
+
+    public static String getJSONString (int code) {
+        return getJSONString(code, null, null);
     }
 
 }
