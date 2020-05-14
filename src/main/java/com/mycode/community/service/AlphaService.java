@@ -21,6 +21,8 @@ public class AlphaService {
         System.out.println("实例化AlphaService");
     }
 
+    // 当容器实例化这个Bean后，在调用完构造器之后，该方法自动被调用
+    // bean合适被初始化？ 在服务启动时被初始化，所以在服务器启动时，该方法就会被调用
     //要想让容器在适当的时候自动的调用这个方法，添加@PostConstruct注解
     @PostConstruct  //表明该方法会在构造器之后调用
     public void init () {

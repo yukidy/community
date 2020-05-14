@@ -7,6 +7,7 @@ import com.mycode.community.entity.DiscussPost;
 import com.mycode.community.entity.LoginTicket;
 import com.mycode.community.entity.User;
 import com.mycode.community.util.CommunityUtil;
+import com.mycode.community.util.SensitiveFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
