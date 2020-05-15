@@ -148,7 +148,7 @@
 								<ul class="d-inline float-right">
 									<li class="d-inline ml-2">赞 11</li>
 									<li class="d-inline ml-2">|</li>
-									<li class="d-inline ml-2">回帖 7</li>
+									<li class="d-inline ml-2">回帖 <span th:text="${map.post.commentCount}">7</span></li>
 								</ul>
 							</div>
 						</div>						
@@ -156,7 +156,7 @@
 				</ul>
 				<!-- 分页 -->
 									<!-- 在极端情况下，若是一条数据都没有，则不显示分页 -->
-				<nav class="mt-5" th:if="${page.rows > 0}">
+				<nav class="mt-5" th:if="${page.rows > 0}" th:fragment="pagination">
 					<ul class="pagination justify-content-center">
 						<li class="page-item">
 												<!-- 动态链接，使用@{}，首页current=1可以加?current=1，
