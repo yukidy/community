@@ -135,7 +135,7 @@
 								<!-- th:text    普通字符串
 									 th:utext	转义文本
 									 比如：&lt意思是<号，如果用th:text则直接显示&lt,但使用th:utext则会自动转义成<号  -->
-								<a href="#" th:utext="${map.post.title}">备战春招，面试刷题跟他复习，一个月全搞定！</a>
+								<a th:href="@{|/discuss/detail/${map.post.id}|}" th:utext="${map.post.title}">备战春招，面试刷题跟他复习，一个月全搞定！</a>
 								<!-- th:if判断，if成立才显示，不成立则不显示 -->
 								<span class="badge badge-secondary bg-primary" th:if="${map.post.type==1}">置顶</span>
 								<span class="badge badge-secondary bg-danger" th:if="${map.post.status==1}">精华</span>

@@ -62,4 +62,13 @@ public class DiscussPostService {
         return discussPostMapper.insertDiscussPost(post);
     }
 
+    /**
+     * 查找详情贴
+     * @param id 帖子id
+     * @return 帖子详情
+     */
+    public DiscussPost getDiscussPost (int id) {
+        return discussPostMapper.selectDiscussPostById(id);
+    }
+
 }
