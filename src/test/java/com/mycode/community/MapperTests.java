@@ -2,10 +2,9 @@ package com.mycode.community;
 
 import com.mycode.community.dao.DiscussPostMapper;
 import com.mycode.community.dao.LoginTickerMapper;
+import com.mycode.community.dao.MessageMapper;
 import com.mycode.community.dao.UserMapper;
-import com.mycode.community.entity.DiscussPost;
-import com.mycode.community.entity.LoginTicket;
-import com.mycode.community.entity.User;
+import com.mycode.community.entity.*;
 import com.mycode.community.util.CommunityUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +26,9 @@ public class MapperTests {
 
     @Autowired
     private LoginTickerMapper loginTickerMapper;
+
+    @Autowired
+    private MessageMapper messageMapper;
 
     @Test
     public void testSelect () {
@@ -128,6 +130,31 @@ public class MapperTests {
 
         DiscussPost discussPost = discussPostMapper.selectDiscussPostById(155);
         System.out.println(discussPost);
+
+    }
+
+    /**
+     * 测试message-mapper方法
+     */
+    @Test
+    public void testSelectConversation () {
+
+        List<Message> list = messageMapper.selectConversations(111, 0, 20);
+        for (Message message:list) {
+            System.out.println(message);
+        }
+
+        System.out.println(messageMapper.selectConversationCount(111));
+
+        list =messageMapper.selectLetters("111_112", 0, 20);
+
+        for (Message message:list) {
+            System.out.println(message);
+        }
+
+        System.out.println(messageMapper.selectLetterCount("111_112"));
+
+        System.out.println(messageMapper.selectLetterUnreadCount(131, "111_131"));
 
     }
 

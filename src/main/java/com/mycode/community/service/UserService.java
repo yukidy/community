@@ -217,4 +217,12 @@ public class UserService {
     public int updatePassword (int userId, String password) {
         return userMapper.updatePassword(userId, password);
     }
+
+
+    /**
+     * 通过用户名查找用户
+     */
+    public User findUserByName (String username) {
+        return userMapper.selectByName(username);
+    }
 }
