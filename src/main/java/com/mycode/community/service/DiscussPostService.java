@@ -71,4 +71,9 @@ public class DiscussPostService {
         return discussPostMapper.selectDiscussPostById(id);
     }
 
+    // 更新帖子评论数
+    public int updateCommentCount (int id, int count) {
+        return discussPostMapper.updateCommentCount(id, count);
+    }
+
 }
