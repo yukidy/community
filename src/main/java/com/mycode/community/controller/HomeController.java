@@ -4,7 +4,9 @@ import com.mycode.community.entity.DiscussPost;
 import com.mycode.community.entity.Page;
 import com.mycode.community.entity.User;
 import com.mycode.community.service.DiscussPostService;
+import com.mycode.community.service.LikeService;
 import com.mycode.community.service.UserService;
+import com.mycode.community.util.CommunityConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,13 +21,16 @@ import java.util.Map;
 //Controller下的访问路径其实是可以为空的，直接访问方法路径就可以
 //不需要@RequestMapping
 @Controller
-public class HomeController {
+public class HomeController implements CommunityConstant {
 
     @Autowired
     private DiscussPostService discussPostService;
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private LikeService likeService;
 
     @RequestMapping(path = "/index", method = RequestMethod.GET)
     public String getIndexPage (Model model, Page page) {
@@ -49,6 +54,10 @@ public class HomeController {
                 map.put("post", post);
                 User user = userService.findUserById(post.getUserId()); //? 考虑到redis的存在，这边使用单表多次查询
                 map.put("user", user);
+
+                long likeCount = likeService.findLikeEntityCount(ENTITY_TYPE_POST, post.getId());
+                map.put("likeCount", likeCount);
+
                 discussPosts.add(map);
             }
             model.addAttribute("discussPosts", discussPosts);

@@ -6,6 +6,7 @@ import com.mycode.community.entity.Page;
 import com.mycode.community.entity.User;
 import com.mycode.community.service.CommentService;
 import com.mycode.community.service.DiscussPostService;
+import com.mycode.community.service.LikeService;
 import com.mycode.community.service.UserService;
 import com.mycode.community.util.CommunityConstant;
 import com.mycode.community.util.CommunityUtil;
@@ -35,6 +36,9 @@ public class DiscussPostController implements CommunityConstant {
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private LikeService likeService;
 
     @RequestMapping(path = "/post", method = RequestMethod.POST)
     @ResponseBody
@@ -71,6 +75,15 @@ public class DiscussPostController implements CommunityConstant {
         User user = userService.findUserById(post.getUserId());
         model.addAttribute("user", user);
 
+        // 点赞
+        long likeCount = likeService.findLikeEntityCount(ENTITY_TYPE_POST, post.getId());
+        model.addAttribute("likeCount", likeCount);
+
+        // 点赞状态,未登录不给点赞权限
+        int likeStatus = holder.getUser() == null ? 0 :
+                likeService.findLikeEntityStatus(holder.getUser().getId(), ENTITY_TYPE_POST, post.getId());
+        model.addAttribute("likeStatus", likeStatus);
+
         // 帖子和作者可以通过关联查询，效率会更高
         // 但同时也会带来用户和帖子的数据层的一些耦合，有好处也有坏处
         // 这里分开查询，可用redis替换，弥补效率问题，让代码更加清晰简洁
@@ -100,6 +113,15 @@ public class DiscussPostController implements CommunityConstant {
                 // 评论人
                 commentVo.put("user", userService.findUserById(comment.getUserId()));
 
+                // 点赞
+                likeCount = likeService.findLikeEntityCount(ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeCount", likeCount);
+
+                // 点赞状态,未登录不给点赞权限
+                likeStatus = holder.getUser() == null ? -1 :
+                        likeService.findLikeEntityStatus(holder.getUser().getId(), ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeStatus", likeStatus);
+
                 // 回复列表/不做分页处理 Integer.MAX_VALUE 有多少显示多少，不限制条数
                 List<Comment> replyList = commentService.findCommentByEntity(ENTITY_TYPE_COMMENT, comment.getId(), 0, Integer.MAX_VALUE);
                 // 回复的View Object列表
@@ -113,8 +135,17 @@ public class DiscussPostController implements CommunityConstant {
                         // 回复人
                         replyVo.put("user", userService.findUserById(reply.getUserId()));
                         // 回复的目标
-                        User target = reply.getTargetId() == 0 ? null : userService.findUserById(reply.getTargetId());
+                        User target = reply.getTargetId() == -1 ? null : userService.findUserById(reply.getTargetId());
                         replyVo.put("target", target);
+
+                        // 点赞
+                        likeCount = likeService.findLikeEntityCount(ENTITY_TYPE_COMMENT, reply.getId());
+                        replyVo.put("likeCount", likeCount);
+
+                        // 点赞状态,未登录不给点赞权限
+                        likeStatus = holder.getUser() == null ? -1 :
+                                likeService.findLikeEntityStatus(holder.getUser().getId(), ENTITY_TYPE_COMMENT, reply.getId());
+                        replyVo.put("likeStatus", likeStatus);
 
                         replyVoList.add(replyVo);
                     }
