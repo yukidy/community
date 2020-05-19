@@ -49,6 +49,16 @@
 			</exclusions>
 		</dependency>
 
+		<!-- redis spring boot starter -->
+		<!-- spring boot 下可以不用写<version>, 当前这个pom是继承了spring boot
+			 下的某一个父类pom,父类的pom中声明了很多常用包的版本，这个子pom可以不用写该版本
+			  父类pom声明的版本互相之间做过测试，版本之间是兼容的，不容易出错
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
 		<!-- mysql -->
 		<dependency>
 			<groupId>mysql</groupId>

@@ -56,4 +56,14 @@ public class HomeController {
         return "/index";
     }
 
+    /**
+     * 服务器发生异常，统一处理，记录日志之后怎么办？
+     *  由于是人为处理，这时我们需要手动的重定向到500页面
+     * @return
+     */
+    @RequestMapping(path = "/error", method = RequestMethod.GET)
+    public String getErrorPage () {
+        return "/error/500";
+    }
+
 }
