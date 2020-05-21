@@ -1,7 +1,12 @@
 package com.mycode.community.controller;
 
 import com.mycode.community.entity.Comment;
+import com.mycode.community.entity.DiscussPost;
+import com.mycode.community.entity.Event;
+import com.mycode.community.event.EventProducer;
 import com.mycode.community.service.CommentService;
+import com.mycode.community.service.DiscussPostService;
+import com.mycode.community.util.CommunityConstant;
 import com.mycode.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,13 +18,19 @@ import java.util.Date;
 
 @Controller
 @RequestMapping("/comment")
-public class CommentController {
+public class CommentController implements CommunityConstant {
 
     @Autowired
     private CommentService commentService;
 
     @Autowired
     private HostHolder holder;
+
+    @Autowired
+    private EventProducer producer;
+
+    @Autowired
+    private DiscussPostService postService;
 
     // 在评论完之后，我们希望的还是返回这个帖子的详情页面，
     // 但是这个详情页面的路径是带有帖子id的，
@@ -33,6 +44,29 @@ public class CommentController {
         comment.setCreateTime(new Date());
         comment.setStatus(0);
         commentService.addComment(comment);
+
+        // 触发评论事件
+        // 评论-发送站内通知
+        Event event = new Event()
+                .setTopic(TOPIC_COMMENT)
+                .setUserId(holder.getUser().getId())
+                .setEntityType(comment.getEntityType())
+                .setEntityId(comment.getEntityId())
+                .setData("postId", discussPostId);
+
+        // 查询是对帖子的评论还是对评论的评论
+        if (comment.getEntityType() == ENTITY_TYPE_POST) {
+            DiscussPost target = postService.getDiscussPost(comment.getEntityId());
+            // 获得被评论的帖子的作者id
+            event.setEntityUserId(target.getUserId());
+        } else if (comment.getEntityType() == ENTITY_TYPE_COMMENT) {
+            // 获得被评论的评论
+            Comment target = commentService.findCommentById(comment.getEntityId());
+            // 获得被评论的用户id
+            event.setEntityUserId(target.getUserId());
+        }
+        // 触发事件
+        producer.fireEvent(event);
 
         return "redirect:/discuss/detail/" + discussPostId;
     }

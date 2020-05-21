@@ -5,7 +5,14 @@ import org.apache.ibatis.annotations.*;
 import org.springframework.test.context.jdbc.Sql;
 
 @Mapper
+// 若某类或某方法加上 @Deprecated 该注解之后，表示此方法或类不再建议使用，
+// 调用时也会出现删除线，但并不代表不能用，只是说，不推荐使用，因为还有更好的方法可以调用
+@Deprecated
 public interface LoginTickerMapper {
+
+    /**
+     *  登录凭证使用redis
+     */
 
     /**
      * 方法一：此前，在数据访问层声明了方法后，都是在Mapper中新建配置文件.xml后写sql

@@ -39,7 +39,19 @@ public class ServiceLogAscept {
         // 利用RequestContextHolder工具类的静态方法：返回值类型是RequestAttributes
         // 可以强制转型成一个子类型ServletRequestAttributes，功能更多
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+
+        // 在开发完消息队列后，新增了生产者和消费者
+        // 在此之前，所有对service的方法都是有Controller调用，有用户的操作
+        // 但新增了Consumer之后，消费者有调用service，此时出现了特殊情况，没有用户去调用
+        // requestAttributes无法获取，为null
+        // 修改
+        if (requestAttributes == null) {
+            return;
+        }
         HttpServletRequest request = requestAttributes.getRequest();
+
+
         // 获取发出请求的客户端的主机名
         String ip = request.getRemoteHost();
         // 获取发出请求的客户端的IP地址

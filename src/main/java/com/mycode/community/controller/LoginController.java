@@ -3,11 +3,14 @@ package com.mycode.community.controller;
 import com.google.code.kaptcha.Producer;
 import com.mycode.community.entity.User;
 import com.mycode.community.service.UserService;
+import com.mycode.community.util.CommunityUtil;
+import com.mycode.community.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -23,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.mycode.community.util.CommunityConstant.*;
 
@@ -39,6 +43,9 @@ public class LoginController {
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      *  注册页面
@@ -113,15 +120,31 @@ public class LoginController {
      *
      *  返回的是一种特殊的类型：一张图片，返回值用void，因为需要我们通过response对象手动的向浏览器输出
      */
+    /**
+     * 重构：将存储在session中的验证码替换成redis
+     * @param response
+     */
     @RequestMapping(path = "/kaptcha", method = RequestMethod.GET)
-    public void getKaptcha (HttpServletResponse response, HttpSession session) {
+    public void getKaptcha (HttpServletResponse response/*, HttpSession session*/) {
 
         // 生成验证码
         String text = kaptchaProduce.createText();
         BufferedImage image = kaptchaProduce.createImage(text);
 
         // 存入session
-        session.setAttribute("kaptcha", text);
+        //session.setAttribute("kaptcha", text);
+
+        // 验证码的归属
+        String kaptchaOwner = CommunityUtil.generateUUID();
+        Cookie cookie = new Cookie("kaptchaOwner", kaptchaOwner);
+        cookie.setMaxAge(60);
+        cookie.setPath(contextPath);
+        response.addCookie(cookie);
+
+        // 将验证码存入redis,60秒后过期
+        String kaptchaKey = RedisKeyUtil.getKaptchaKey(kaptchaOwner);
+        redisTemplate.opsForValue().set(kaptchaKey, text, 60, TimeUnit.SECONDS);
+
 
         // 将验证码图片输出给浏览器
         response.setContentType("image/png");
@@ -140,9 +163,13 @@ public class LoginController {
      *      这里发现，请求路径/login与进入登录页面时的请求路径一样，可以这样吗？
      *          可以，只要请求方法不同，如进入页面是GET方法，而登录操作时POST方法，即可
      */
+    /**
+     * 重构验证码
+     */
     @RequestMapping(path = "/login", method = RequestMethod.POST)
     public String login (String username, String password, String code, boolean isrememberme,
-                         Model model, HttpServletResponse response, HttpSession session) {
+                         Model model, HttpServletResponse response,/*, HttpSession session*/
+                         @CookieValue(name = "kaptchaOwner", required = false, defaultValue = "") String kaptchaOwner) {
                         //当参数不是普通的参数，如实体User，那么spring mvc会自动将实体装入model里
                         //在页面中即可直接直接通过model获取这些参数
                         //  但如果参数是普通类型参数，字符串，基本类型这些，则spring mvc默认是不会加入model中的
@@ -150,7 +177,19 @@ public class LoginController {
                         //                 2、这些参数是存在于request对象当中的，当程序执行到html页面时，请求是还没有被销毁的
                         //                      所以页面可以通过request对象来取值，如${param.username}
         // 检查验证码
-        String kaptcha = (String) session.getAttribute("kaptcha");
+        //String kaptcha = (String) session.getAttribute("kaptcha");
+
+        String kaptcha = null;
+
+        // 判断用户的验证码随机字符串是否存在
+        if (StringUtils.isNotBlank(kaptchaOwner)) {
+            String kaptchaKey = RedisKeyUtil.getKaptchaKey(kaptchaOwner);
+            kaptcha = (String) redisTemplate.opsForValue().get(kaptchaKey);
+        } else {
+            model.addAttribute("codeMsg", "验证码失效!");
+            return "/site/login";
+        }
+
         if (StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)) {
             model.addAttribute("codeMsg", "验证码不正确!");
             return "/site/login";
