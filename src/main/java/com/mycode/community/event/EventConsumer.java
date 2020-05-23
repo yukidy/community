@@ -1,14 +1,18 @@
 package com.mycode.community.event;
 
 import com.alibaba.fastjson.JSONObject;
+import com.mycode.community.entity.DiscussPost;
 import com.mycode.community.entity.Event;
 import com.mycode.community.entity.Message;
+import com.mycode.community.service.DiscussPostService;
+import com.mycode.community.service.ElasticsearchService;
 import com.mycode.community.service.MessageService;
 import com.mycode.community.util.CommunityConstant;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -24,10 +28,13 @@ public class EventConsumer implements CommunityConstant {
     private static final Logger logger = LoggerFactory.getLogger(EventConsumer.class);
 
     @Autowired
-    private KafkaTemplate kafkaTemplate;
+    private MessageService messageService;
 
     @Autowired
-    private MessageService messageService;
+    private DiscussPostService postService;
+
+    @Autowired
+    private ElasticsearchService elasticService;
 
     /**
      *  这里可以写多个方法分别处理三个不同的事件
@@ -84,6 +91,34 @@ public class EventConsumer implements CommunityConstant {
 
         // 存储message信息
         messageService.addMessage(message);
+    }
+
+
+    /**
+     *  消费发帖事件
+     */
+    @KafkaListener(topics = {TOPIC_PUBLISH})
+    public void handlePublishMessage (ConsumerRecord record) {
+
+        // 空值处理
+        if (record == null || record.value() == null) {
+            logger.error("消息的内容为空！");
+            return;
+        }
+
+        Event event = JSONObject.parseObject(record.value().toString(), Event.class);
+        // 格式处理
+        if (event == null) {
+            logger.error("消息格式错误！");
+            return;
+        }
+
+        // 再做一层检查
+        if (event.getEntityType() == ENTITY_TYPE_POST) {
+            DiscussPost post = postService.getDiscussPost(event.getEntityId());
+            elasticService.saveDiscussPost(post);
+        }
+
     }
 
 }

@@ -46,25 +46,50 @@ public class CommentController implements CommunityConstant {
         commentService.addComment(comment);
 
         // 触发评论事件
+
         // 评论-发送站内通知
-        Event event = new Event()
-                .setTopic(TOPIC_COMMENT)
+        Event event = new Event();
+
+        // 查询是对帖子的评论还是对评论的评论
+        if (comment.getEntityType() == ENTITY_TYPE_POST) {
+
+            // 获得被评论的帖子
+            DiscussPost target = postService.getDiscussPost(comment.getEntityId());
+
+            // 触发发帖事件
+            Event postEvent = new Event()
+                    .setTopic(TOPIC_PUBLISH)
+                    .setUserId(holder.getUser().getId())
+                    .setEntityType(ENTITY_TYPE_POST)
+                    .setEntityId(discussPostId);
+            producer.fireEvent(postEvent);
+
+            // //判断是否是给自己帖子或回复的评论（不触发）
+            if (target.getUserId() == holder.getUser().getId()) {
+                return "redirect:/discuss/detail/" + discussPostId;
+            }
+            // 获得被评论的帖子的作者id
+            event.setEntityUserId(target.getUserId());
+
+        } else if (comment.getEntityType() == ENTITY_TYPE_COMMENT) {
+
+            // 获得被评论的评论
+            Comment target = commentService.findCommentById(comment.getEntityId());
+            // //判断是否是给自己帖子或回复的评论（不触发）
+            if (target.getUserId() == holder.getUser().getId() || comment.getTargetId() == holder.getUser().getId()) {
+                return "redirect:/discuss/detail/" + discussPostId;
+            }
+            // 获得被评论的用户id
+            event.setEntityUserId(target.getUserId());
+
+        }
+
+        event.setTopic(TOPIC_COMMENT)
                 .setUserId(holder.getUser().getId())
                 .setEntityType(comment.getEntityType())
                 .setEntityId(comment.getEntityId())
                 .setData("postId", discussPostId);
 
-        // 查询是对帖子的评论还是对评论的评论
-        if (comment.getEntityType() == ENTITY_TYPE_POST) {
-            DiscussPost target = postService.getDiscussPost(comment.getEntityId());
-            // 获得被评论的帖子的作者id
-            event.setEntityUserId(target.getUserId());
-        } else if (comment.getEntityType() == ENTITY_TYPE_COMMENT) {
-            // 获得被评论的评论
-            Comment target = commentService.findCommentById(comment.getEntityId());
-            // 获得被评论的用户id
-            event.setEntityUserId(target.getUserId());
-        }
         // 触发事件
         producer.fireEvent(event);
 

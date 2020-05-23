@@ -47,7 +47,7 @@ public class LikeController implements CommunityConstant {
 
         // 触发点赞事件
         // 被赞进行通知，取消赞不通知
-        if (likeStatus == 1) {
+        if (likeStatus == 1 && user.getId() != entityUserId) {
 
             Event event = new Event()
                     .setTopic(TOPIC_LIKE)

@@ -51,7 +51,6 @@ public class UserService {
         if (user == null) {
             user = initCache(id);
         }
-        System.out.println(user + ": id:" + id);
         user.getId();
         return user;
     }
