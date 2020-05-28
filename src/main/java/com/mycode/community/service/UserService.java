@@ -4,6 +4,7 @@ import com.mycode.community.dao.LoginTickerMapper;
 import com.mycode.community.dao.UserMapper;
 import com.mycode.community.entity.LoginTicket;
 import com.mycode.community.entity.User;
+import com.mycode.community.util.CommunityConstant;
 import com.mycode.community.util.CommunityUtil;
 import com.mycode.community.util.MailClient;
 import com.mycode.community.util.RedisKeyUtil;
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -21,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import static com.mycode.community.util.CommunityConstant.*;
 
 @Service
-public class UserService {
+public class UserService implements CommunityConstant {
 
     @Autowired
     private UserMapper userMapper;
@@ -285,4 +287,37 @@ public class UserService {
         String userKey = RedisKeyUtil.getUserKey(userId);
         redisTemplate.delete(userKey);
     }
+
+
+
+    /**
+     *  我们需要将用户的权限存储到securityContext中
+     *      该方法实现：根据用户获取该用户响应的权限
+     *
+     * @param userId 用户id
+     * @return
+     */
+    public Collection<? extends GrantedAuthority> getAuthorities (int userId) {
+
+        User user = this.findUserById(userId);
+
+        List<GrantedAuthority> list = new ArrayList<>();
+        // 每一个GrantedAuthority通过getAuthority方法封装一个权限
+        list.add(new GrantedAuthority() {
+            @Override
+            public String getAuthority() {
+                switch (user.getType()) {
+                    case 1 :
+                        return AUTHORITY_ADMIN;
+                    case 2 :
+                        return AUTHORITY_MODERATOR;
+                    default:
+                        return AUTHORITY_USER;
+                }
+            }
+        });
+        return list;
+    }
+
+
 }

@@ -1,9 +1,6 @@
 package com.mycode.community.config;
 
-import com.mycode.community.controller.interceptor.AlphaInterceptor;
-import com.mycode.community.controller.interceptor.LoginRequiredInterceptor;
-import com.mycode.community.controller.interceptor.LoginTicketInterceptor;
-import com.mycode.community.controller.interceptor.MessageInterceptor;
+import com.mycode.community.controller.interceptor.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -23,11 +20,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private LoginTicketInterceptor ticketInterceptor;
 
-    @Autowired
-    private LoginRequiredInterceptor requiredInterceptor;
+//    @Autowired
+//    private LoginRequiredInterceptor loginRequiredInterceptor;
 
     @Autowired
     private MessageInterceptor messageInterceptor;
+
+    @Autowired
+    private DataInterceptor dataInterceptor;
 
     // 注册拦截器:实现addInterceptors方法
     @Override
@@ -55,10 +55,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // 要求：对所有静态资源都不处理，而动态资源都处理
         // 动态资源在处理时，人为的筛选了带注解的那部分，其他的不管
         // 处理加快效率
-        registry.addInterceptor(requiredInterceptor)
-                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
+//        registry.addInterceptor(loginRequiredInterceptor)
+//                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
 
         registry.addInterceptor(messageInterceptor)
+                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
+
+        registry.addInterceptor(dataInterceptor)
                 .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
     }
 

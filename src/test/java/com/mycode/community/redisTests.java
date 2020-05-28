@@ -5,10 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.core.BoundValueOperations;
-import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.core.*;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.concurrent.TimeUnit;
@@ -155,6 +154,147 @@ public class redisTests {
 
         System.out.println(obj);
 
+    }
+
+
+    /**
+     *  使用HyperLogLog
+     */
+
+    // 统计20万个重复数据的独立总数
+    @Test
+    public void testHyperLogLog () {
+
+        String redisKey = "test:hll:01";
+
+        // 制造20万重复数据
+        for (int i = 1; i <= 100000; i++) {
+            redisTemplate.opsForHyperLogLog().add(redisKey, i);
+        }
+        for (int i = 1; i <= 100000; i++) {
+            int rd = (int) (Math.random() * 100000 + 1);
+            redisTemplate.opsForHyperLogLog().add(redisKey, rd);
+        }
+
+        // 去重后的准确结果应该是 100000
+
+        // 下面是HyperLogLog的去重结果
+        Long size = redisTemplate.opsForHyperLogLog().size(redisKey);
+        System.out.println(size);
+        System.out.println(size / 100000f - 1);
+
+    }
+
+    // HyperLogLog对数据进行合并
+    // 统计了该月每一天的UV
+    // 而需求可能是：我需要一周七天的UV，你需要将着七天的UV数据合在一起
+    // HyperLogLog提供一个api能够自动的对UV进行合并
+
+   // 将三组数据合并，再统计合并后的重复数据的总数
+    @Test
+    public void testHyperLogLogUnion () {
+
+        String redisKey2 = "test:hll:02";
+        for (int i = 1; i <= 100000; i++) {
+            redisTemplate.opsForHyperLogLog().add(redisKey2, i);
+        }
+
+        String redisKey3 = "test:hll:03";
+        for (int i = 50001; i <= 150000; i++) {
+            redisTemplate.opsForHyperLogLog().add(redisKey3, i);
+        }
+
+        String redisKey4 = "test:hll:04";
+        for (int i = 100000; i <= 200000; i++) {
+            redisTemplate.opsForHyperLogLog().add(redisKey4, i);
+        }
+
+        // 合并，三种数据合并后再存储到HYPERLOGLOG中，所以需要准备一个新的key
+        String unionKey = "test:hll:union";
+        redisTemplate.opsForHyperLogLog().union(unionKey, redisKey2, redisKey3, redisKey4);
+
+        // 合并后去重
+        long size = redisTemplate.opsForHyperLogLog().size(unionKey);
+
+        System.out.println(size);
+    }
+
+
+    /**
+     *  bitmap的使用
+     */
+
+    // 统计一组数据的布尔值
+    @Test
+    public void testBitmap () {
+        String redisKey = "test:bm:01";
+
+        // bitmap不是一种新的数据类型，只是String的一种特殊的使用，按位存储
+
+        // 记录 Boolean setBit(K var1:key , long var2:指定的位（索引）, boolean var4:布尔值)
+        // 默认是0，就是说不处理就是false，只有为true时才进行处理，最终统计的往往是true的个数
+        redisTemplate.opsForValue().setBit(redisKey, 1, true);
+        redisTemplate.opsForValue().setBit(redisKey, 4, true);
+        redisTemplate.opsForValue().setBit(redisKey, 7, true);
+
+        // 查询
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 0));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 1));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 2));
+
+        // 统计
+        Object obj = redisTemplate.execute(new RedisCallback() {
+            // 当执行redis的execute方法时，底层会调用RedisCallback方法，会将redis的连接传入该方法
+            @Override
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                return connection.bitCount(redisKey.getBytes());
+            }
+        });
+
+        System.out.println(obj);
+
+    }
+
+    // 统计3组数据的布尔值，并对这3组数据做OR运算
+    @Test
+    public void testBitMapOperation () {
+
+        String redisKey2 = "test:bm:02";
+        redisTemplate.opsForValue().setBit(redisKey2, 0, true);
+        redisTemplate.opsForValue().setBit(redisKey2, 1, true);
+        redisTemplate.opsForValue().setBit(redisKey2, 2, true);
+
+        String redisKey3 = "test:bm:03";
+        redisTemplate.opsForValue().setBit(redisKey3, 2, true);
+        redisTemplate.opsForValue().setBit(redisKey3, 3, true);
+        redisTemplate.opsForValue().setBit(redisKey3, 4, true);
+
+        String redisKey4 = "test:bm:04";
+        redisTemplate.opsForValue().setBit(redisKey4, 4, true);
+        redisTemplate.opsForValue().setBit(redisKey4, 5, true);
+        redisTemplate.opsForValue().setBit(redisKey4, 6, true);
+
+        // 运算之后redis会存入一个新的结果中
+        String redisKey = "test:bm:or";
+
+        Object obj = redisTemplate.execute(new RedisCallback() {
+            @Override
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                // bitOp(声明何种运算符的接口, 指定运算结果存入的key， 对那几组数据进行运算):运算
+                connection.bitOp(RedisStringCommands.BitOperation.OR, redisKey.getBytes(),
+                        redisKey2.getBytes(), redisKey3.getBytes(), redisKey4.getBytes());
+                return connection.bitCount(redisKey.getBytes());
+            }
+        });
+
+        System.out.println(obj);
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 0));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 1));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 2));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 3));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 4));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 5));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 6));
     }
 
 }

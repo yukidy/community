@@ -25,6 +25,22 @@ public class test {
         map.put("age", 18);
         System.out.println(CommunityUtil.getJSONString(0, "ok", map));
 
+        int i = 1;
+        switch(i){
+            case 0:
+                System.out.println("0");
+            case 1:
+                System.out.println("1");
+            case 2:
+                System.out.println("2");
+            default:
+                System.out.println("default");
+        }
+
+        System.out.println(3 / 2);
+        System.out.println(5 / 3);
+        System.out.println(5 / 2);
+
     }
 
 }

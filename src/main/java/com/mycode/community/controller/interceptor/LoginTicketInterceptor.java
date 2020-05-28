@@ -6,6 +6,10 @@ import com.mycode.community.service.UserService;
 import com.mycode.community.util.CookieUtil;
 import com.mycode.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -43,6 +47,13 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
                 //      如果只是简单的存储到了一个工具或则是容器当中，在并发情况下，这个变量是会产生冲突的
                 // 考虑线程隔离，每个线程单独存储一份，互相不干扰
                 holder.setUsers(user);
+
+                // securityContextHolder:保存认证的信息
+                // 购进用户认证的信息，存入securityContext对象，以便于Security进行授权
+                Authentication authentication = new UsernamePasswordAuthenticationToken(
+                        user, user.getPassword(), userService.getAuthorities(user.getId()));
+                SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+
             }
         }
 
@@ -52,7 +63,7 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
 
-        //得到当前线程持有的User
+        // 得到当前线程持有的User
         User user = holder.getUser();
         if (user != null && modelAndView != null) {
             modelAndView.addObject("loginUser", user);
@@ -64,6 +75,7 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
 
         holder.clear();
+        SecurityContextHolder.clearContext();
 
     }
 }

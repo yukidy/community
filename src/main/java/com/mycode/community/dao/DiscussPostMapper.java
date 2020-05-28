@@ -30,4 +30,10 @@ public interface DiscussPostMapper {
     // 更新评论数commentCount
     int updateCommentCount (int id, int commentCount);
 
+    // 更改帖子类型 （0-普通、1-置顶）
+    int updateDiscussPostType (int postId, int type);
+
+    // 更改帖子状态 （0-正常、1-加精、2-拉黑）
+    int updateDiscussPostStatus (int postId, int status);
+
 }

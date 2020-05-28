@@ -52,14 +52,14 @@ public class UserController implements CommunityConstant {
     private FollowService followService;
 
     // 进入设置页面
-    @LoginRequired
+//    @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
     public String getSettingPage () {
         return "/site/setting";
     }
 
     // 处理上传的文件
-    @LoginRequired
+//    @LoginRequired
     @RequestMapping(path = "/upload", method = RequestMethod.POST)
     // 这个方法接收的是页面上的一个文件类型的参数，spring MVC专门有一个MultipartFile类型来接收文件
     // 如果页面传了多个文件，可以用数组接收MultipartFile[]
@@ -141,7 +141,7 @@ public class UserController implements CommunityConstant {
 
 
     // 修改密码
-    @LoginRequired
+//    @LoginRequired
     @RequestMapping(path = "/updatePassword", method = RequestMethod.POST)
     public String updatePassword (String oldPassword, String newPassword, Model model) {
 

@@ -76,4 +76,25 @@ public class DiscussPostService {
         return discussPostMapper.updateCommentCount(id, count);
     }
 
+
+    /**
+     * 更改帖子的类型
+     * @param postId 帖子id
+     * @param type 0-普通、1-置顶
+     * @return
+     */
+    public int setDiscussPostType (int postId, int type) {
+        return discussPostMapper.updateDiscussPostType(postId, type);
+    }
+
+
+    /**
+     * 更改帖子的状态
+     * @param postId 帖子id
+     * @param status 0-正常、1-精华、2-拉黑
+     * @return
+     */
+    public int setDiscussPostStatus (int postId, int status) {
+        return discussPostMapper.updateDiscussPostStatus(postId, status);
+    }
 }

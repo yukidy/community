@@ -178,4 +178,70 @@ public class DiscussPostController implements CommunityConstant {
 
     }
 
+    /**
+     * 帖子置顶
+     * @param postId
+     * @return
+     */
+    @RequestMapping(path = "/top", method = RequestMethod.POST)
+    @ResponseBody
+    public String setTop (int postId) {
+
+        postService.setDiscussPostType(postId, POST_TYPE_TOP);
+
+        // 触发发帖事件（帖子修改-ES的数据也需要变动）
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(holder.getUser().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(postId);
+        producer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);
+    }
+
+    /**
+     * 帖子加精
+     * @param postId
+     * @return
+     */
+    @RequestMapping(path = "/wonderful", method = RequestMethod.POST)
+    @ResponseBody
+    public String setWonderful (int postId) {
+
+        postService.setDiscussPostStatus(postId, POST_STATUS_WONDERFUL);
+
+        // 触发发帖事件（帖子修改-ES的数据也需要变动）
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(holder.getUser().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(postId);
+        producer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);
+    }
+
+    /**
+     * 帖子删除
+     * @param postId
+     * @return
+     */
+    @RequestMapping(path = "/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public String setDelete (int postId) {
+
+        postService.setDiscussPostStatus(postId, POST_STATUS_DELETE);
+
+        // 触发发帖事件（帖子修改-ES的数据也需要变动）
+        Event event = new Event()
+                .setTopic(TOPIC_DELETE)
+                .setUserId(holder.getUser().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(postId);
+        producer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);
+    }
+
 }

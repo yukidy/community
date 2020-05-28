@@ -52,5 +52,17 @@
         set comment_count = #{commentCount}
         where id = #{id};
     </update>
+
+    <update id="updateDiscussPostType">
+        update discuss_post
+        set type = #{type}
+        where id = #{postId};
+    </update>
+
+    <update id="updateDiscussPostStatus">
+        update discuss_post
+        set status = #{status}
+        where id = #{postId};
+    </update>
     
 </mapper>
