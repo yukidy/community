@@ -25,8 +25,8 @@ public class DiscussPostService {
      *      选择方法2，这种方式更加的直观，而且后面使用到redis，缓存数据时，更加方便，性能更高，代码更加直观
      */
 
-    public List<DiscussPost> findDiscussPosts (int userId, int offset, int limit) {
-        return discussPostMapper.selectDiscussPosts(userId, offset, limit);
+    public List<DiscussPost> findDiscussPosts (int userId, int offset, int limit, int orderMode) {
+        return discussPostMapper.selectDiscussPosts(userId, offset, limit, orderMode);
     }
 
     public int findDiscussPostRows (int userId) {
@@ -96,5 +96,15 @@ public class DiscussPostService {
      */
     public int setDiscussPostStatus (int postId, int status) {
         return discussPostMapper.updateDiscussPostStatus(postId, status);
+    }
+
+    /**
+     * 修改帖子的分数
+     * @param postId
+     * @param score
+     * @return
+     */
+    public int setDiscussPostScore (int postId, double score) {
+        return discussPostMapper.updateScore(postId, score);
     }
 }

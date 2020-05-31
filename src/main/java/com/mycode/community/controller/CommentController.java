@@ -8,7 +8,9 @@ import com.mycode.community.service.CommentService;
 import com.mycode.community.service.DiscussPostService;
 import com.mycode.community.util.CommunityConstant;
 import com.mycode.community.util.HostHolder;
+import com.mycode.community.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +33,9 @@ public class CommentController implements CommunityConstant {
 
     @Autowired
     private DiscussPostService postService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     // 在评论完之后，我们希望的还是返回这个帖子的详情页面，
     // 但是这个详情页面的路径是带有帖子id的，
@@ -63,6 +68,10 @@ public class CommentController implements CommunityConstant {
                     .setEntityType(ENTITY_TYPE_POST)
                     .setEntityId(discussPostId);
             producer.fireEvent(postEvent);
+
+            // 计算帖子分数
+            String sRefreshKey = RedisKeyUtil.getPostScoreRefreshKey();
+            redisTemplate.opsForSet().add(sRefreshKey, discussPostId);
 
             // //判断是否是给自己帖子或回复的评论（不触发）
             if (target.getUserId() == holder.getUser().getId()) {

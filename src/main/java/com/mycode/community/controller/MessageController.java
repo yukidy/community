@@ -93,8 +93,9 @@ public class MessageController implements CommunityConstant {
 
         // 私信列表
         List<Message> letterList = messageService.findLetters(conversationId, page.getOffset(), page.getLimit());
-        List<Map<String, Object>> letters = new ArrayList<>();
+        List<Map<String, Object>> letters = null;
         if (letterList != null) {
+            letters = new ArrayList<>();
             for (Message message : letterList) {
                 Map<String, Object> map = new HashMap<>();
                 map.put("letter", message);

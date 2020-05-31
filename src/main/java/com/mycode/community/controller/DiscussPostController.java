@@ -9,7 +9,9 @@ import com.mycode.community.service.UserService;
 import com.mycode.community.util.CommunityConstant;
 import com.mycode.community.util.CommunityUtil;
 import com.mycode.community.util.HostHolder;
+import com.mycode.community.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +43,9 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired
     private EventProducer producer;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @RequestMapping(path = "/post", method = RequestMethod.POST)
     @ResponseBody
     public String addDiscussPost (String title, String content) {
@@ -66,6 +71,10 @@ public class DiscussPostController implements CommunityConstant {
                 .setEntityId(discussPost.getId());
 
         producer.fireEvent(event);
+
+        // 发布的帖子，对该贴进行一次分数计算
+        String sRefreshKey = RedisKeyUtil.getPostScoreRefreshKey();
+        redisTemplate.opsForSet().add(sRefreshKey, discussPost.getId());
 
         // 失败或者报错，将来会统一处理
         return CommunityUtil.getJSONString(0, "发布成功!");
@@ -218,6 +227,10 @@ public class DiscussPostController implements CommunityConstant {
                 .setEntityType(ENTITY_TYPE_POST)
                 .setEntityId(postId);
         producer.fireEvent(event);
+
+        // 计算帖子分数
+        String sRefreshKey = RedisKeyUtil.getPostScoreRefreshKey();
+        redisTemplate.opsForSet().add(sRefreshKey, postId);
 
         return CommunityUtil.getJSONString(0);
     }

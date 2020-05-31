@@ -23,7 +23,12 @@
         <if test="userId!=0">
             and user_id = #{userId}
         </if>
-        order by type desc, create_time desc  <!-- 按照类型，置顶贴排前，再按照发布时间，新贴排前 -->
+        <if test="orderMode==0">
+            order by type desc, create_time desc  <!-- 按照类型，置顶贴排前，再按照发布时间，新贴排前 -->
+        </if>
+        <if test="orderMode==1">
+            order by type desc, score desc, create_time desc
+        </if>
         limit #{offset}, #{limit}
     </select>
 
@@ -62,6 +67,12 @@
     <update id="updateDiscussPostStatus">
         update discuss_post
         set status = #{status}
+        where id = #{postId};
+    </update>
+
+    <update id="updateScore">
+        update discuss_post
+        set score = #{score}
         where id = #{postId};
     </update>
     

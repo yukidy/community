@@ -6,8 +6,12 @@ import com.mycode.community.dao.UserMapper;
 import com.mycode.community.entity.DiscussPost;
 import com.mycode.community.entity.User;
 import com.mycode.community.util.CommunityUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -24,6 +28,8 @@ import java.util.Date;
 @Service
 //@Scope("prototype") //每次调用会产生不同的实例
 public class AlphaService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AlphaService.class);
 
     //实现依赖注入，service依赖于dao
     @Autowired
@@ -140,5 +146,20 @@ public class AlphaService {
             }
         });
 
+    }
+
+    // 让该方法在多线程的环境下，被异步的调用
+    // 就是说，启用一个线程去调用这个方法，这个线程和主线程是并发执行的、异步执行的
+    @Async
+    public void execute1 () {
+        // 在测试方法中调用了该方法，见ThreadPoolTests
+        logger.debug("execute1");
+    }
+
+    // 让该方法在定时任务的多线程的环境下，被异步的调用
+    // @Scheduled(initialDelay = 10000, fixedRate = 1000)
+    public void execute2 () {
+        // 在测试方法中调用了该方法，见ThreadPoolTests
+        logger.debug("execute2");
     }
 }

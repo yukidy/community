@@ -12,11 +12,13 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +37,12 @@ public class EventConsumer implements CommunityConstant {
 
     @Autowired
     private ElasticsearchService elasticService;
+
+    @Value(("${wk.image.storage}"))
+    private String wkImageStorage;
+
+    @Value("${wk.image.command}")
+    private String wkImageCommand;
 
     /**
      *  这里可以写多个方法分别处理三个不同的事件
@@ -141,6 +149,39 @@ public class EventConsumer implements CommunityConstant {
         }
 
         elasticService.deleteDiscussPost(event.getEntityId());
+    }
+
+    /**
+     *  消费分享图片事件
+     */
+    @KafkaListener(topics = {TOPIC_SHARE})
+    public void handleShareImagesMessage (ConsumerRecord record) {
+
+        if (record == null) {
+            logger.error("消息的内容为空！");
+            return;
+        }
+
+        Event event = JSONObject.parseObject(record.value().toString(), Event.class);
+        if (event == null) {
+            logger.error("消息格式错误！");
+            return;
+        }
+
+        String htmlUrl = (String) event.getData().get("htmlUrl");
+        String fileName = (String) event.getData().get("fileName");
+        String suffix = (String) event.getData().get("suffix");
+
+        // 处理事件
+        String cmd = wkImageCommand + " --quality 75 " + htmlUrl + " "
+                + wkImageStorage + "/" + fileName + suffix;
+        try {
+            Runtime.getRuntime().exec(cmd);
+            logger.info("生成长图成功: " + cmd);
+        } catch (IOException e) {
+            logger.error("生成长图失败: " + e.getMessage());
+        }
+
     }
 
 }

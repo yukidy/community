@@ -12,7 +12,12 @@ public interface DiscussPostMapper {
     //分页查询帖子&查询我的帖子功能
     //首页分页查询，实际上不需要userId参数，这是给查询我的帖子预留的
     //不传值是为0，不拼到sql中，不为0时，拼到sql当中，做一个动态sql
-    List<DiscussPost> selectDiscussPosts (int userId, int offset, int limit);  //offset:起始行行号; limit:每页行数
+
+    //  List<DiscussPost> selectDiscussPosts (int userId, int offset, int limit);  //offset:起始行行号; limit:每页行数
+
+    // 重构-加入首页热帖
+    // 默认orderMode:0 按照类型和时间排序  orderMode:1 按照帖子热度排序
+    List<DiscussPost> selectDiscussPosts (int userId, int offset, int limit, int orderMode);
 
     //查询页码，同样包含两个功能首页分页和我的帖子分页
     // 一共可以有多少页-> 总贴数/分页行数
@@ -35,5 +40,7 @@ public interface DiscussPostMapper {
 
     // 更改帖子状态 （0-正常、1-加精、2-拉黑）
     int updateDiscussPostStatus (int postId, int status);
+
+    int updateScore (int postId, double score);
 
 }

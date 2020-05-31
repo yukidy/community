@@ -25,6 +25,9 @@ public class RedisKeyUtil {
     // DAU(daily active user) 日活跃用户
     private static final String PREFIX_DAU = "dau";
 
+    // 需要刷新分数的帖子列表
+    private static final String PREFIX_SCORE = "post:refresh";
+
     // 某个实体的赞(帖子、评论等等)
     // like:entity:entityType:entityId -> set(userId)
     // 谁给该实体点赞，就将该用户的id存储到集合当中，而不是简单的数字+1
@@ -92,6 +95,11 @@ public class RedisKeyUtil {
     // 合并DAU，区间DAU - key
     public static String getDauKey (String startDate, String endDate) {
         return PREFIX_DAU + SPLIT + startDate + SPLIT + endDate;
+    }
+
+    // 定时刷新分数的帖子列表的redis key
+    public static String getPostScoreRefreshKey () {
+        return PREFIX_SCORE + SPLIT + "score";
     }
 
 
