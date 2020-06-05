@@ -1,6 +1,10 @@
 package com.mycode.community.event;
 
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.oss.*;
+import com.aliyun.oss.model.Callback;
+import com.aliyun.oss.model.PutObjectRequest;
+import com.aliyun.oss.model.PutObjectResult;
 import com.mycode.community.entity.DiscussPost;
 import com.mycode.community.entity.Event;
 import com.mycode.community.entity.Message;
@@ -8,20 +12,22 @@ import com.mycode.community.service.DiscussPostService;
 import com.mycode.community.service.ElasticsearchService;
 import com.mycode.community.service.MessageService;
 import com.mycode.community.util.CommunityConstant;
+import com.mycode.community.util.CommunityUtil;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 @Component
 public class EventConsumer implements CommunityConstant {
@@ -43,6 +49,25 @@ public class EventConsumer implements CommunityConstant {
 
     @Value("${wk.image.command}")
     private String wkImageCommand;
+
+    // OSS
+    @Value("${aliyun.key.access}")
+    private String accessKey;
+
+    @Value("${aliyun.key.secret}")
+    private String secretKey;
+
+    @Value("${aliyun.bucket.share.name}")
+    private String shareBucketName;
+
+    @Value("${aliyun.bucket.share.endpoint}")
+    private String shareBucketUrl;
+
+    @Autowired
+    private ThreadPoolTaskScheduler taskScheduler;
+
+    @Autowired
+    private OSSClient ossClient;
 
     /**
      *  这里可以写多个方法分别处理三个不同的事件
@@ -182,6 +207,86 @@ public class EventConsumer implements CommunityConstant {
             logger.error("生成长图失败: " + e.getMessage());
         }
 
+        // 直接传图会有问题
+        // 因为runtime方法和主线程是异步的，生成长图耗时，不会等待长图执行完成再执行
+        // 所以在传图时可能图片还没有生成
+
+        // 启动定时器，监视该图片，每隔半秒识别长图是否生成，一旦生成，上传至阿里云
+        UploadTask uploadTask = new UploadTask(fileName, suffix);
+        // 传完一定要停止该定时线程
+        // 任务的返回值，封装了任务的状态，能够用来停止线程任务
+        Future future = taskScheduler.scheduleAtFixedRate(uploadTask, 500);
+        // 将future给与任务，保证可以停止
+        uploadTask.setFuture(future);
+
+    }
+
+    class UploadTask implements Runnable{
+
+        // 文件名称
+        private String filename;
+        // 文件后缀
+        private String suffix;
+        // 启动任务的返回值，可以用来停止定时器
+        private Future future;
+
+        // 开始时间
+        private long startTime;
+        // 上传次数
+        private int uploadTimes;
+
+        public void setFuture(Future future) {
+            this.future = future;
+        }
+
+        // 构造器，要求传参
+        public UploadTask(String filename, String suffix) {
+            this.filename = filename;
+            this.suffix = suffix;
+            this.startTime = System.currentTimeMillis();
+        }
+
+        @Override
+        public void run() {
+            // 生成图片失败
+            if (System.currentTimeMillis() - startTime > 30000) {
+                logger.error("执行时间过长，终止任务:" + filename);
+                future.cancel(true);
+                return;
+            }
+            // 上传失败
+            if (uploadTimes >= 3) {
+                logger.error("上传次数过多，终止任务:" + filename);
+                future.cancel(true);
+                return;
+            }
+
+            String path = wkImageStorage + "/" + filename + suffix;
+            File file = new File(path);
+            if (file.exists()) {
+                logger.info(String.format("开始第%d次上传[%s].", ++uploadTimes, filename));
+                OSS ossClient = null;
+                try {
+                    // 创建OSSClient实例。
+                    ossClient = new OSSClientBuilder().build(shareBucketUrl, accessKey, secretKey);
+                    // 创建PutObjectRequest对象。
+                    String shareImgUrl = filename + suffix;
+                    PutObjectRequest putObjectRequest =
+                            new PutObjectRequest(shareBucketName, shareImgUrl, file);
+
+                    ossClient.putObject(putObjectRequest);
+
+                    future.cancel(true);
+                } catch (OSSException e) {
+                    logger.info(String.format("第%d次上传失败[%s].", uploadTimes, filename));
+                } finally {
+                    ossClient.shutdown();
+                }
+            } else {
+                logger.info("等待图片生成[" + filename + "].");
+            }
+
+        }
     }
 
 }

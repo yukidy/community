@@ -28,6 +28,12 @@ public class RedisKeyUtil {
     // 需要刷新分数的帖子列表
     private static final String PREFIX_SCORE = "post:refresh";
 
+    // 热帖redis缓存
+    private static final String PREFIX_HOT_POST_CACHE = "post:hot:cache";
+
+    // 帖子总行数:redis缓存
+    private static final String PREFIX_ROWS_POST_CACHE = "post:rows:cache";
+
     // 某个实体的赞(帖子、评论等等)
     // like:entity:entityType:entityId -> set(userId)
     // 谁给该实体点赞，就将该用户的id存储到集合当中，而不是简单的数字+1
@@ -100,6 +106,16 @@ public class RedisKeyUtil {
     // 定时刷新分数的帖子列表的redis key
     public static String getPostScoreRefreshKey () {
         return PREFIX_SCORE + SPLIT + "score";
+    }
+
+    // 返回热帖redis缓存key  post:hot:cache:${offset}:${limit}
+    public static String getPostHotCacheKey (String cacheKey) {
+        return PREFIX_HOT_POST_CACHE + SPLIT + cacheKey;
+    }
+
+    // 返回帖子总行数的redis缓存key  post:rows:cache:0
+    public static String getPostRowsCacheKey (int key) {
+        return PREFIX_ROWS_POST_CACHE + SPLIT + key;
     }
 
 

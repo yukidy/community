@@ -50,6 +50,19 @@ public class CommunityUtil {
     }
 
     //重载方法
+    public static String getJSONString (int code, Map<String, String> map) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code", code);
+
+        if (map != null) {
+            for (String key : map.keySet()) {
+                jsonObject.put(key, map.get(key));
+            }
+        }
+
+        return jsonObject.toJSONString();
+    }
+
     public static String getJSONString (int code, String msg) {
         return getJSONString(code, msg, null);
     }

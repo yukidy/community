@@ -43,4 +43,7 @@ public interface DiscussPostMapper {
 
     int updateScore (int postId, double score);
 
+    // 批量插入-测试 for循环拼接
+    int insertBatchDiscussPosts (List<DiscussPost> list);
+
 }

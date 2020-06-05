@@ -14,7 +14,7 @@
         user_id, entity_type, entity_id, target_id, content, status, create_time
     </sql>
 
-    <select id="selectCommentByEntity" resultType="Comment">
+    <select id="selectCommentByEntity" resultType="com.mycode.community.entity.Comment">
         select <include refid="selectFields"></include>
         from comment
         where status = 0
@@ -33,16 +33,33 @@
     </select>
 
     <!-- 添加评论 -->
-    <insert id="insertComment" parameterType="Comment" keyProperty="id">
+    <insert id="insertComment" parameterType="com.mycode.community.entity.Comment" keyProperty="id">
         insert into comment(<include refid="insertFields"></include>)
         values (#{userId}, #{entityType}, #{entityId}, #{targetId}, #{content}, #{status}, #{createTime});
     </insert>
 
-    <select id="selectCommentById" resultType="Comment">
+    <select id="selectCommentById" resultType="com.mycode.community.entity.Comment">
         select <include refid="selectFields"></include>
         from comment
         where id = #{id}
     </select>
+
+    <select id="selectUserPostCommentCount" resultType="java.lang.Integer">
+        select count(id)
+        from comment
+        where status = 0
+        and entity_type = #{entityType}
+        and user_id = #{userId}
+    </select>
+
+    <select id="selectUserPostCommentList" resultType="com.mycode.community.entity.Comment">
+        select <include refid="selectFields"></include>
+        from comment
+        where status = 0
+        and entity_type = #{entityType}
+        and user_id = #{userId}
+    </select>
+
 
 
 </mapper>

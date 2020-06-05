@@ -41,6 +41,32 @@ public class test {
         System.out.println(5 / 3);
         System.out.println(5 / 2);
 
+        long k = 2;
+        int l = 2;
+        long k2 = 155;
+        int l2 = 155;
+        Long k3 = k2;
+        Long k4 = new Long(2);
+        Long k6 = new Long(2);
+        Long k5 = new Long(255);
+        Long k7 = new Long(255);
+        Integer i2 = 155;
+        Integer i3 = 155;
+        System.out.println(k == l); // t
+        System.out.println(k == k4); // t
+        System.out.println(k2 == l2); // t
+        System.out.println(k3 == k2); // t
+        System.out.println(k4 == k); // t
+        System.out.println(k5 == k2); // t
+        System.out.println(k5 == k3); // f
+        System.out.println(k5 == l2); // t
+        System.out.println(k4 == k6); // f
+        System.out.println(k4.equals(k6)); // t
+        System.out.println(k5.equals(k3)); // t
+        System.out.println(k3.getClass());
+        System.out.println(k7.equals(k5)); // t
+        System.out.println(i2 == i3); // 2-t  155-f
+
     }
 
 }

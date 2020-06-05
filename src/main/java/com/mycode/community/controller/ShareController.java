@@ -48,6 +48,12 @@ public class ShareController implements CommunityConstant {
     @Value(("${wk.image.storage}"))
     private String imageStorage;
 
+    @Value("${aliyun.bucket.share.endpoint}")
+    private String shareBucketUrl;
+
+    @Value("${aliyun.bucket.share.name}")
+    private String shareBucketName;
+
     /**
      * 分享请求
      * @param htmlUrl
@@ -70,11 +76,16 @@ public class ShareController implements CommunityConstant {
 
         // 返回访问路径
         Map<String, Object> map = new HashMap<>();
-        map.put("shareUrl", domain + contextPath + "/share/images/" + fileName);
+//        map.put("shareUrl", domain + contextPath + "/share/images/" + fileName);
+
+        // http://gamefire-community-share.oss-cn-shenzhen.aliyuncs.com/${filename}.png
+        map.put("shareUrl", "http://" + shareBucketName + "." + shareBucketUrl + "/" + fileName + ".png");
+
         return CommunityUtil.getJSONString(0, null, map);
     }
 
 
+    // 废弃该方法
     /**
      *  获取
      */

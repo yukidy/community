@@ -27,7 +27,7 @@
             order by type desc, create_time desc  <!-- 按照类型，置顶贴排前，再按照发布时间，新贴排前 -->
         </if>
         <if test="orderMode==1">
-            order by type desc, score desc, create_time desc
+            order by type desc, score desc
         </if>
         limit #{offset}, #{limit}
     </select>
@@ -45,6 +45,27 @@
         insert into discuss_post(<include refid="insertFields"></include>)
         values (#{userId}, #{title}, #{content}, #{type}, #{status}, #{createTime}, #{commentCount}, #{score});
     </insert>
+
+    <!-- 批量插入数据 -->
+    <!-- id不自增 -->
+    <!--
+        <foreach>中的属性：
+            item：迭代时当前指向的对象
+            collection：传入的参数类型
+            separator：每个foreach间的sql间隔
+            index：在list和数组中,index是元素的序号，在map中，index是元素的key
+     -->
+    <insert id="insertBatchDiscussPosts" parameterType="java.util.List">
+        <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID ()
+        </selectKey>
+        insert into discuss_post(<include refid="insertFields"></include>)
+        values 
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.userId}, #{item.title}, #{item.content}, #{item.type}, #{item.status}, #{item.createTime}, #{item.commentCount}, #{item.score})
+        </foreach>
+    </insert>
+
 
     <select id="selectDiscussPostById" resultType="DiscussPost">
         select <include refid="selectFields"></include>

@@ -39,9 +39,14 @@ public class Page {
         return rows;
     }
 
+    // 当总行数大于1000时，按1000来算
     public void setRows(int rows) {
         if (rows >= 0) {
-            this.rows = rows;
+            if (rows > 1000) {
+                this.rows = 1000;
+            } else {
+                this.rows = rows;
+            }
         }
     }
 

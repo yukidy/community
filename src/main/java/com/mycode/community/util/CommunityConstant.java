@@ -34,6 +34,7 @@ public interface CommunityConstant {
      */
     int REMEMBER_EXPIRED_SECONDS = 3600 * 24 * 30;
 
+
     /**
      *  实体类型：对帖子评论
      */

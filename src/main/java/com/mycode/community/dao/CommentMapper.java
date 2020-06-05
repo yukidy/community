@@ -20,4 +20,9 @@ public interface CommentMapper {
     // 查询一条评论
     Comment selectCommentById (int id);
 
+    // 查询某用户对帖子的评论数（不去重）
+    int selectUserPostCommentCount (int userId, int entityType);
+
+    // 查询用户对帖子的评论
+    List<Comment> selectUserPostCommentList (int userId, int entityType);
 }

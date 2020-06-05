@@ -97,6 +97,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Comm
                 // 表示该路径下持有有哪些权限才可以访问，hasAnyAuthority：有任何一种角色权限都可访问
                 .antMatchers(
                         "/user/setting",
+                        "/user/myreply/**",
                         "/user/upload",
                         "/comment/add/**",
                         "/letter/**",
@@ -121,7 +122,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Comm
                 // 管理员特有
                 .antMatchers(
                         "/discuss/delete",
-                        "/data/**"
+                        "/data/**",
+                        "/actuator/**"
                 )
                 .hasAnyAuthority(
                         AUTHORITY_ADMIN

@@ -40,8 +40,18 @@ public class HomeController implements CommunityConstant {
         //方法调用前，springMVC会自动实例化Model和Page，并将Page注入Model，
         //所以，在thymeleaf中可以直接访问Page对象中的数据
 
+        if (orderMode != 0 && orderMode != 1) {
+            orderMode = 0;
+        }
+
+        /**
+         *  首页优化-数据过多时，查询会大大降低性能
+         *      若是数据大于100页，只显示前100页内容
+         */
+
         //查询总页数,存入page
         page.setRows(discussPostService.findDiscussPostRows(0));
+
         //设置路径，做分页
         page.setPath("/index?orderMode=" + orderMode);
 
